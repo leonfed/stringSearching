@@ -119,3 +119,8 @@ void MainWindow::on_actionOpenFile_triggered() {
 }
 
 
+
+void MainWindow::on_actionStop_triggered()
+{
+
+}

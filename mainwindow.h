@@ -41,6 +41,8 @@ private slots:
 
     void callbackSearcher(std::vector<fs::path>);
 
+    void on_actionStop_triggered();
+
 private:
     Ui::MainWindow *ui;
     bool flagProcessing;

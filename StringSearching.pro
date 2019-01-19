@@ -27,7 +27,6 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    indexes.cpp \
     builderindex.cpp \
     searcher.cpp
 

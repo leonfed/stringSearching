@@ -28,16 +28,16 @@
        <widget class="QLineEdit" name="inputString"/>
       </item>
       <item>
+       <widget class="QLabel" name="statusString">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QListWidget" name="listFiles"/>
       </item>
      </layout>
-    </item>
-    <item>
-     <widget class="QLabel" name="statusString">
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
     </item>
    </layout>
   </widget>
@@ -71,9 +71,11 @@
    </attribute>
    <addaction name="actionBrowse"/>
    <addaction name="actionRun"/>
+   <addaction name="actionStop"/>
    <addaction name="actionOpenDirectory"/>
    <addaction name="actionOpenFile"/>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionBrowse">
    <property name="text">
     <string>Browse</string>
@@ -92,6 +94,11 @@
   <action name="actionRun">
    <property name="text">
     <string>Run</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="text">
+    <string>Stop</string>
    </property>
   </action>
  </widget>
