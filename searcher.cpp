@@ -3,7 +3,7 @@
 #include <fstream>
 #include <set>
 
-searcher::searcher(std::string inputString) : inputString(inputString) {}
+searcher::searcher(std::string inputString) : inputString(inputString), flagStop(false) {}
 
 bool findInputStringInFile(std::string &inputString, fs::path p) {
     std::ifstream file(p);
@@ -57,6 +57,9 @@ void searcher::doWork() {
     std::ifstream listFiles(LIST_FILES);
     char buf[SIZE_BUF];
     for (auto &t : trigrams) {
+        if (flagStop) {
+            return;
+        }
         int pos = ind.allTrigrams[t].first * 2;
         int sz = ind.allTrigrams[t].second * 2;
         listFiles.seekg(pos, std::ios_base::beg);
@@ -66,6 +69,9 @@ void searcher::doWork() {
         }
     }
     for (size_t i = 0; i < (1 << 16); i++) {
+        if (flagStop) {
+            return;
+        }
         if (cntTrigrams[i] == (inputString.length() - 2)) {
             fs::path p = ind.mapPaths[i];
             std::vector<int> pos;
@@ -75,4 +81,8 @@ void searcher::doWork() {
         }
     }
     send(paths);
+}
+
+void searcher::toStop() {
+    flagStop = true;
 }

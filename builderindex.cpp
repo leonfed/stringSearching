@@ -3,7 +3,7 @@
 #include <fstream>
 #include <set>
 
-builderIndex::builderIndex(std::string directory) : directory(directory) {}
+builderIndex::builderIndex(std::string directory) : directory(directory), flagStop(false) {}
 
 void getListFiles(std::vector<fs::path> &paths, const std::string &directory) {
     for(const auto &p: fs::recursive_directory_iterator(directory)) {
@@ -61,13 +61,16 @@ bool createFileIndex(std::ofstream &listPairsStream, fs::path &p, short num, std
     return true;
 }
 
-void createListFiles(std::map<std::tuple<char, char, char>, std::pair<int, int>> allTrigrams) {
+void builderIndex::createListFiles(std::map<std::tuple<char, char, char>, std::pair<int, int>> allTrigrams) {
     fs::remove(LIST_FILES);
     std::ofstream listFilesStream(LIST_FILES);
     std::ifstream listPairsStream(LIST_PAIRS);
     char buf[SIZE_BUF * 5];
     int szListFiles = 0;
     do {
+        if (flagStop) {
+            return;
+        }
         std::map<std::tuple<char, char, char>, std::vector<short>> mapListFiles;
         listPairsStream.read(buf, sizeof(buf));
         int sz = (int)listPairsStream.gcount();
@@ -106,6 +109,9 @@ void builderIndex::doWork() {
     ind.allTrigrams.clear();
     ind.mapPaths.clear();
     for (auto &p : paths) {
+        if (flagStop) {
+            return;
+        }
         if (createFileIndex(listPairsStream, p, num, ind.allTrigrams, ind.mapPaths)) {
             num++;
         }
@@ -120,4 +126,8 @@ void builderIndex::doWork() {
     ind.directory = directory;
     ind.lastChange = fs::last_write_time(directory);
     emit send();
+}
+
+void builderIndex::toStop() {
+    flagStop = true;
 }

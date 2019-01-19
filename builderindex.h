@@ -14,15 +14,18 @@ class builderIndex : public QObject
 public:
 
     builderIndex(std::string directory);
+    void createListFiles(std::map<std::tuple<char, char, char>, std::pair<int, int>> allTrigrams);
 
 public slots:
     void doWork();
+    void toStop();
 
 signals:
     void send();
 
 private:
     std::string directory;
+    bool flagStop;
 
 };
 

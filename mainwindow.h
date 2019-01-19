@@ -43,6 +43,9 @@ private slots:
 
     void on_actionStop_triggered();
 
+signals:
+    void intentStop();
+
 private:
     Ui::MainWindow *ui;
     bool flagProcessing;

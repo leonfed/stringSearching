@@ -15,10 +15,12 @@ public:
     searcher(std::string inputString);
 public slots:
     void doWork();
+    void toStop();
 signals:
     void send(std::vector<fs::path>);
 private:
     std::string inputString;
+    bool flagStop;
 };
 
 #endif // SEARCHER_H

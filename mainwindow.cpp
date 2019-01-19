@@ -46,6 +46,7 @@ void MainWindow::callBuilder(std::string &directory) {
     builder->moveToThread(thread);
     connect(builder, SIGNAL(send()), this, SLOT(callbackBuilder()));
     connect(thread, SIGNAL(started()), builder, SLOT(doWork()));
+    connect(this, SIGNAL(intentStop()), builder, SLOT(toStop()), Qt::DirectConnection);
     flagProcessing = true;
     thread->start();
 }
@@ -59,6 +60,7 @@ void MainWindow::callSearcher(std::string &inputString) {
     qRegisterMetaType<std::vector<fs::path>>("Type");
     connect(search, SIGNAL(send(Type)), this, SLOT(callbackSearcher(Type)));
     connect(thread, SIGNAL(started()), search, SLOT(doWork()));
+    connect(this, SIGNAL(intentStop()), search, SLOT(toStop()), Qt::DirectConnection);
     flagProcessing = true;
     thread->start();
 }
@@ -95,7 +97,7 @@ void MainWindow::on_actionRun_triggered() {
     }
     std::vector<fs::path> paths;
     indexes &ind = indexes::instance();
-    if (ind.lastChange < fs::last_write_time(ind.directory)) {
+    if (!ind.directory.empty() && ind.lastChange < fs::last_write_time(ind.directory)) {
         callBuilder(ind.directory);
     }
     callSearcher(inputString);
@@ -118,9 +120,8 @@ void MainWindow::on_actionOpenFile_triggered() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(filePath)));
 }
 
-
-
-void MainWindow::on_actionStop_triggered()
-{
-
+void MainWindow::on_actionStop_triggered() {
+    emit intentStop();
+    ui->statusString->setText("Stopped");
+    flagProcessing = false;
 }
