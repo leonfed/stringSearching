@@ -103,6 +103,7 @@ void MainWindow::on_actionIndex_triggered() {
         callBuilder(directory);
     } catch (...) {
         ui->directory->setText("Directory isn't selected");
+        ui->statusString->setText("Can't index directory");
     }
 }
 
@@ -112,10 +113,14 @@ void MainWindow::on_actionRun_triggered() {
     if (flagProcessing != NOP || inputString.length() <= 2 || ind.directory.empty()) {
         return;
     }
-    if (ind.lastChange < fs::last_write_time(ind.directory)) {
-        callBuilder(ind.directory, BUILD_SEARCH);
-    } else {
-        callSearcher(inputString);
+    try {
+        if (ind.lastChange < fs::last_write_time(ind.directory)) {
+            callBuilder(ind.directory, BUILD_SEARCH);
+        } else {
+            callSearcher(inputString);
+        }
+    } catch (...) {
+        ui->statusString->setText("Can't find");
     }
 }
 
@@ -123,17 +128,25 @@ void MainWindow::on_actionOpenDirectory_triggered() {
     if (flagProcessing != NOP || !ui->listFiles->currentItem()) {
         return;
     }
-    fs::path filePath = ui->listFiles->currentItem()->text().toStdString();
-    fs::path directoryPath = filePath.parent_path();
-    QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(directoryPath)));
+    try {
+        fs::path filePath = ui->listFiles->currentItem()->text().toStdString();
+        fs::path directoryPath = filePath.parent_path();
+        QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(directoryPath)));
+    } catch (...) {
+        ui->statusString->setText("Can't open directory");
+    }
 }
 
 void MainWindow::on_actionOpenFile_triggered() {
     if (flagProcessing != NOP || !ui->listFiles->currentItem()) {
         return;
     }
-    fs::path filePath = ui->listFiles->currentItem()->text().toStdString();
-    QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(filePath)));
+    try {
+        fs::path filePath = ui->listFiles->currentItem()->text().toStdString();
+        QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(filePath)));
+    } catch (...) {
+        ui->statusString->setText("Can't open file");
+    }
 }
 
 void MainWindow::on_actionStop_triggered() {

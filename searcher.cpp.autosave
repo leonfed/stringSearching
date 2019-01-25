@@ -11,7 +11,7 @@ bool findInputStringInFile(std::string &inputString, fs::path p) {
         return false;
     }
     std::vector<int> prefInputString(inputString.length(), 0);
-    for (int i = 1; i < inputString.length(); i++) {
+    for (size_t i = 1; i < inputString.length(); i++) {
         int k = prefInputString[i - 1];
         while (k > 0 && inputString[i] != inputString[k]) {
             k = prefInputString[k - 1];
