@@ -32,10 +32,6 @@ bool createFileIndex(std::ofstream &listPairsStream, fs::path &p, short num, std
         }
         firstChar = secondChar = 0;
         for (int i = 0; i < sz - 2; i++) {
-            if (buf[i] < 10) {
-                file.close();
-                return false;
-            }
             trigrams.insert(std::tuple<char, char, char>(buf[i], buf[i + 1], buf[i + 2]));
         }
         if (sz > 1) {
@@ -66,7 +62,11 @@ void builderIndex::createListFiles(std::map<std::tuple<char, char, char>, std::p
     std::ofstream listFilesStream(LIST_FILES);
     std::ifstream listPairsStream(LIST_PAIRS);
     char buf[SIZE_BUF * 5];
-    int szListFiles = 0;
+    size_t szListFiles = 0, isDone = 0;
+    for (auto e : allTrigrams) {
+        szListFiles += e.second.second;
+    }
+    listFilesStream.seekp(szListFiles * 2, std::ios_base::beg);
     do {
         if (flagStop) {
             return;
@@ -82,9 +82,7 @@ void builderIndex::createListFiles(std::map<std::tuple<char, char, char>, std::p
             } else {
                 mapListFiles[trig].push_back(num);
             }
-            szListFiles++;
         }
-        listFilesStream.seekp(szListFiles * 2, std::ios_base::beg);
         listFilesStream << char(0);
         //listFilesStream.flush();
         for (auto &t : mapListFiles) {
@@ -94,7 +92,9 @@ void builderIndex::createListFiles(std::map<std::tuple<char, char, char>, std::p
                 listFilesStream << char(el >> 8) << char(el & ((1 << 8) - 1));
                 //listFilesStream.flush();
             }
+            isDone += t.second.size();
         }
+        send(50 + int((50.0 * isDone) / szListFiles));
     } while (listPairsStream);
     listFilesStream.close();
     listPairsStream.close();
@@ -108,13 +108,14 @@ void builderIndex::doWork() {
     short num = 0;
     ind.allTrigrams.clear();
     ind.mapPaths.clear();
-    for (auto &p : paths) {
+    for (size_t i = 0; i < paths.size(); i++) {
         if (flagStop) {
             return;
         }
-        if (createFileIndex(listPairsStream, p, num, ind.allTrigrams, ind.mapPaths)) {
+        if (createFileIndex(listPairsStream, paths[i], num, ind.allTrigrams, ind.mapPaths)) {
             num++;
         }
+        send(int((50.0 * i) / paths.size()));
     }
     listPairsStream.close();
     int cnt = 0;
@@ -125,7 +126,7 @@ void builderIndex::doWork() {
     createListFiles(ind.allTrigrams);
     ind.directory = directory;
     ind.lastChange = fs::last_write_time(directory);
-    emit send();
+    send(100);
 }
 
 void builderIndex::toStop() {

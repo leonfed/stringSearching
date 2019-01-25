@@ -10,7 +10,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    flagProcessing(false)
+    flagProcessing(NOP)
 {
     ui->setupUi(this);
 }
@@ -19,54 +19,73 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::fillListFiles(std::vector<fs::path> paths) {
-    ui->listFiles->clear();
-    for (auto &p : paths) {
-        QListWidgetItem *item = new QListWidgetItem(QIcon(":/icons/file"), QString::fromStdString(p));
-        ui->listFiles->addItem(item);
+void MainWindow::addListFiles(fs::path p) {
+    if (p.empty()) {
+        return;
+    }
+    QListWidgetItem *item = new QListWidgetItem(QIcon(":/icons/file"), QString::fromStdString(p));
+    ui->listFiles->addItem(item);
+}
+
+void MainWindow::callbackBuilder(int progressValue) {
+    bar->setValue(progressValue);
+    if (progressValue == 100) {
+        ui->statusBar->removeWidget(bar);
+        ui->statusString->setText("Done");
+        if (flagProcessing == BUILD_SEARCH) {
+            flagProcessing = NOP;
+            on_actionRun_triggered();
+        } else {
+            flagProcessing = NOP;
+        }
     }
 }
 
-void MainWindow::callbackBuilder() {
-    ui->statusString->setText("Done");
-    flagProcessing = false;
+void MainWindow::callbackSearcher(fs::path p, int progressValue) {
+    addListFiles(p);
+    bar->setValue(progressValue);
+    if (progressValue == 100) {
+        ui->statusBar->removeWidget(bar);
+        ui->statusString->setText("Done");
+        flagProcessing = NOP;
+    }
 }
 
-void MainWindow::callbackSearcher(std::vector<fs::path> paths) {
-    fillListFiles(paths);
-    ui->statusString->setText("Done");
-    flagProcessing = false;
-}
-
-void MainWindow::callBuilder(std::string &directory) {
+void MainWindow::callBuilder(std::string &directory, enumProcessing flag) {
+    bar = new QProgressBar;
+    ui->statusBar->addWidget(bar);
+    bar->setValue(0);
     ui->listFiles->clear();
     ui->statusString->setText("Calculating indexes");
     QThread *thread = new QThread;
     builderIndex *builder = new builderIndex(directory);
     builder->moveToThread(thread);
-    connect(builder, SIGNAL(send()), this, SLOT(callbackBuilder()));
+    connect(builder, SIGNAL(send(int)), this, SLOT(callbackBuilder(int)));
     connect(thread, SIGNAL(started()), builder, SLOT(doWork()));
     connect(this, SIGNAL(intentStop()), builder, SLOT(toStop()), Qt::DirectConnection);
-    flagProcessing = true;
+    flagProcessing = flag;
     thread->start();
 }
 
 void MainWindow::callSearcher(std::string &inputString) {
+    bar = new QProgressBar;
+    ui->statusBar->addWidget(bar);
+    bar->setValue(0);
     ui->listFiles->clear();
     ui->statusString->setText("Searching");
     QThread *thread = new QThread;
     searcher *search = new searcher(inputString);
     search->moveToThread(thread);
-    qRegisterMetaType<std::vector<fs::path>>("Type");
-    connect(search, SIGNAL(send(Type)), this, SLOT(callbackSearcher(Type)));
+    qRegisterMetaType<fs::path>("Type");
+    connect(search, SIGNAL(send(Type, int)), this, SLOT(callbackSearcher(Type, int)));
     connect(thread, SIGNAL(started()), search, SLOT(doWork()));
     connect(this, SIGNAL(intentStop()), search, SLOT(toStop()), Qt::DirectConnection);
-    flagProcessing = true;
+    flagProcessing = SEARCH;
     thread->start();
 }
 
-void MainWindow::on_actionBrowse_triggered() {
-    if (flagProcessing) {
+void MainWindow::on_actionIndex_triggered() {
+    if (flagProcessing != NOP) {
         return;
     }
     QString Qdirectory;
@@ -88,23 +107,20 @@ void MainWindow::on_actionBrowse_triggered() {
 }
 
 void MainWindow::on_actionRun_triggered() {
-    if (flagProcessing) {
-        return;
-    }
     std::string inputString = ui->inputString->text().toStdString();
-    if (inputString.length() <= 2) {
+    indexes &ind = indexes::instance();
+    if (flagProcessing != NOP || inputString.length() <= 2 || ind.directory.empty()) {
         return;
     }
-    std::vector<fs::path> paths;
-    indexes &ind = indexes::instance();
-    if (!ind.directory.empty() && ind.lastChange < fs::last_write_time(ind.directory)) {
-        callBuilder(ind.directory);
+    if (ind.lastChange < fs::last_write_time(ind.directory)) {
+        callBuilder(ind.directory, BUILD_SEARCH);
+    } else {
+        callSearcher(inputString);
     }
-    callSearcher(inputString);
 }
 
 void MainWindow::on_actionOpenDirectory_triggered() {
-    if (flagProcessing || !ui->listFiles->currentItem()) {
+    if (flagProcessing != NOP || !ui->listFiles->currentItem()) {
         return;
     }
     fs::path filePath = ui->listFiles->currentItem()->text().toStdString();
@@ -113,7 +129,7 @@ void MainWindow::on_actionOpenDirectory_triggered() {
 }
 
 void MainWindow::on_actionOpenFile_triggered() {
-    if (flagProcessing || !ui->listFiles->currentItem()) {
+    if (flagProcessing != NOP || !ui->listFiles->currentItem()) {
         return;
     }
     fs::path filePath = ui->listFiles->currentItem()->text().toStdString();
@@ -123,5 +139,11 @@ void MainWindow::on_actionOpenFile_triggered() {
 void MainWindow::on_actionStop_triggered() {
     emit intentStop();
     ui->statusString->setText("Stopped");
-    flagProcessing = false;
+    if (flagProcessing == BUILD) {
+        indexes &ind = indexes::instance();
+        ind.clear();
+        ui->directory->setText("Directory isn't selected");
+    }
+    flagProcessing = NOP;
+    ui->statusBar->removeWidget(bar);
 }

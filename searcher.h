@@ -17,7 +17,7 @@ public slots:
     void doWork();
     void toStop();
 signals:
-    void send(std::vector<fs::path>);
+    void send(fs::path, int);
 private:
     std::string inputString;
     bool flagStop;

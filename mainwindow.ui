@@ -58,6 +58,11 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionIndex"/>
+   <addaction name="actionRun"/>
+   <addaction name="actionStop"/>
+   <addaction name="actionOpenDirectory"/>
+   <addaction name="actionOpenFile"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
@@ -69,40 +74,58 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionBrowse"/>
-   <addaction name="actionRun"/>
-   <addaction name="actionStop"/>
-   <addaction name="actionOpenDirectory"/>
-   <addaction name="actionOpenFile"/>
+   <addaction name="separator"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionBrowse">
+  <action name="actionIndex">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icon/icon/index.png</normaloff>:/icon/icon/index.png</iconset>
+   </property>
    <property name="text">
-    <string>Browse</string>
+    <string>Index</string>
    </property>
   </action>
   <action name="actionOpenDirectory">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icon/icon/openDirectory.png</normaloff>:/icon/icon/openDirectory.png</iconset>
+   </property>
    <property name="text">
     <string>Open directory</string>
    </property>
   </action>
   <action name="actionOpenFile">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icon/icon/openFile.png</normaloff>:/icon/icon/openFile.png</iconset>
+   </property>
    <property name="text">
     <string>Open file</string>
    </property>
   </action>
   <action name="actionRun">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icon/icon/run.png</normaloff>:/icon/icon/run.png</iconset>
+   </property>
    <property name="text">
     <string>Run</string>
    </property>
   </action>
   <action name="actionStop">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icon/icon/srop.png</normaloff>:/icon/icon/srop.png</iconset>
+   </property>
    <property name="text">
     <string>Stop</string>
    </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

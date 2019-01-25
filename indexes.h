@@ -24,6 +24,12 @@ public:
     std::map<std::tuple<char, char, char>, std::pair<int, int>> allTrigrams;
     std::map<short, fs::path> mapPaths;
 
+    void clear() {
+        directory.clear();
+        allTrigrams.clear();
+        mapPaths.clear();
+    }
+
 private:
     indexes() {}                                  // Private constructor
     ~indexes() {}

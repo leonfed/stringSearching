@@ -21,7 +21,7 @@ public slots:
     void toStop();
 
 signals:
-    void send();
+    void send(int);
 
 private:
     std::string directory;

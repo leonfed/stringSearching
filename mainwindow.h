@@ -2,12 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QProgressBar>
 #include <vector>
 #include <experimental/filesystem>
 
 namespace fs = std::experimental::filesystem;
 
-Q_DECLARE_METATYPE(std::vector<fs::path>)
+Q_DECLARE_METATYPE(fs::path)
 
 
 namespace Ui {
@@ -22,14 +23,16 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void fillListFiles(std::vector<fs::path>);
+    enum enumProcessing {NOP, BUILD, SEARCH, BUILD_SEARCH};
 
-    void callBuilder(std::string &directory);
+    void addListFiles(fs::path);
+
+    void callBuilder(std::string &directory, enumProcessing flag = BUILD);
 
     void callSearcher(std::string &inputString);
 
 private slots:
-    void on_actionBrowse_triggered();
+    void on_actionIndex_triggered();
 
     void on_actionOpenDirectory_triggered();
 
@@ -37,9 +40,9 @@ private slots:
 
     void on_actionRun_triggered();
 
-    void callbackBuilder();
+    void callbackBuilder(int);
 
-    void callbackSearcher(std::vector<fs::path>);
+    void callbackSearcher(fs::path, int);
 
     void on_actionStop_triggered();
 
@@ -48,7 +51,9 @@ signals:
 
 private:
     Ui::MainWindow *ui;
-    bool flagProcessing;
+
+    QProgressBar* bar;
+    enumProcessing flagProcessing;
 };
 
 #endif // MAINWINDOW_H
