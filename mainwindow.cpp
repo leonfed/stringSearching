@@ -97,7 +97,7 @@ void MainWindow::on_actionIndex_triggered() {
             ui->directory->setText(Qdirectory);
         }
         indexes &ind = indexes::instance();
-        if (ind.directory == directory && ind.lastChange == fs::last_write_time(directory)) {
+        if (directory.empty() || (ind.directory == directory && ind.lastChange == fs::last_write_time(directory))) {
             return;
         }
         callBuilder(directory);
