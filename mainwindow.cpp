@@ -19,7 +19,7 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::addListFiles(fs::path p) {
+void MainWindow::addListFiles(fs::path &p) {
     if (p.empty()) {
         return;
     }

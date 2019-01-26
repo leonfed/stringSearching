@@ -14,7 +14,6 @@ class builderIndex : public QObject
 public:
 
     builderIndex(std::string directory);
-    void createListFiles(std::map<std::tuple<char, char, char>, std::pair<int, int>> allTrigrams);
 
 public slots:
     void doWork();
@@ -24,6 +23,10 @@ signals:
     void send(int);
 
 private:
+    void getListFiles(std::vector<fs::path> &paths, const std::string &directory);
+    void createListFiles(std::map<std::tuple<char, char, char>, std::pair<int, int>> allTrigrams);
+    bool createFileIndex(std::ofstream &listPairsStream, fs::path &p, short num, std::map<std::tuple<char, char, char>, std::pair<int, int>> &allTrigrams, std::map<short, fs::path> &mapPaths);
+
     std::string directory;
     bool flagStop;
 

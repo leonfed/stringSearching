@@ -25,7 +25,7 @@ public:
 
     enum enumProcessing {NOP, BUILD, SEARCH, BUILD_SEARCH};
 
-    void addListFiles(fs::path);
+    void addListFiles(fs::path &p);
 
     void callBuilder(std::string &directory, enumProcessing flag = BUILD);
 

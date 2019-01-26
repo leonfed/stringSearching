@@ -5,13 +5,13 @@
 
 searcher::searcher(std::string inputString) : inputString(inputString), flagStop(false) {}
 
-bool findInputStringInFile(std::string &inputString, fs::path p) {
+bool searcher::findInputStringInFile(std::string &inputString, fs::path &p) {
     std::ifstream file(p);
     if (!file.is_open()) {
         return false;
     }
     std::vector<int> prefInputString(inputString.length(), 0);
-    for (int i = 1; i < inputString.length(); i++) {
+    for (size_t i = 1; i < inputString.length(); i++) {
         int k = prefInputString[i - 1];
         while (k > 0 && inputString[i] != inputString[k]) {
             k = prefInputString[k - 1];
@@ -89,7 +89,7 @@ void searcher::doWork() {
         if (flagStop) {
             return;
         }
-        if (cntTrigrams[i] == (inputString.length() - 2)) {
+        if (cntTrigrams[i] == trigrams.size()) {
             fs::path p = ind.mapPaths[(short)i];
             std::vector<int> pos;
             if (findInputStringInFile(inputString, p)) {

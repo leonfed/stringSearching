@@ -19,6 +19,8 @@ public slots:
 signals:
     void send(fs::path, int);
 private:
+    bool findInputStringInFile(std::string &inputString, fs::path &p);
+
     std::string inputString;
     bool flagStop;
 };

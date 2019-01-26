@@ -5,7 +5,7 @@
 
 builderIndex::builderIndex(std::string directory) : directory(directory), flagStop(false) {}
 
-void getListFiles(std::vector<fs::path> &paths, const std::string &directory) {
+void builderIndex::getListFiles(std::vector<fs::path> &paths, const std::string &directory) {
     for(const auto &p: fs::recursive_directory_iterator(directory)) {
         if (!fs::is_directory(p.path()) && !fs::is_symlink(p.path())) {
             paths.push_back(p.path());
@@ -13,7 +13,7 @@ void getListFiles(std::vector<fs::path> &paths, const std::string &directory) {
     }
 }
 
-bool createFileIndex(std::ofstream &listPairsStream, fs::path &p, short num, std::map<std::tuple<char, char, char>, std::pair<int, int>> &allTrigrams, std::map<short, fs::path> &mapPaths) {
+bool builderIndex::createFileIndex(std::ofstream &listPairsStream, fs::path &p, short num, std::map<std::tuple<char, char, char>, std::pair<int, int>> &allTrigrams, std::map<short, fs::path> &mapPaths) {
     std::ifstream file(p);
     if (!file.is_open()) {
         file.close();
@@ -65,7 +65,7 @@ bool createFileIndex(std::ofstream &listPairsStream, fs::path &p, short num, std
     return true;
 }
 
-void builderIndex::createListFiles(std::map<std::tuple<char, char, char>, std::pair<int, int>> allTrigrams) {
+void builderIndex::createListFiles(std::map<std::tuple<char, char, char>, std::pair<int, int>> allTrigrams) { //allTrigrams is copied, because is changed in this function
     fs::remove(LIST_FILES);
     std::ofstream listFilesStream(LIST_FILES);
     std::ifstream listPairsStream(LIST_PAIRS);
@@ -93,7 +93,7 @@ void builderIndex::createListFiles(std::map<std::tuple<char, char, char>, std::p
         }
         for (int i = 0; i < sz - 4; i += 5) {
             std::tuple<char, char, char> trig = std::tuple<char, char, char>(buf[i], buf[i + 1], buf[i + 2]);
-            short num = (buf[i + 3] << 8) + buf[i + 4];
+            short num = (short)((buf[i + 3] << 8) + buf[i + 4]);
             if (mapListFiles.find(trig) == mapListFiles.end()) {
                 mapListFiles[trig] = std::vector<short>(1, num);
             } else {
@@ -101,13 +101,11 @@ void builderIndex::createListFiles(std::map<std::tuple<char, char, char>, std::p
             }
         }
         listFilesStream << char(0);
-        //listFilesStream.flush();
         for (auto &t : mapListFiles) {
             listFilesStream.seekp(allTrigrams[t.first].first * 2, std::ios_base::beg);
             for (auto &el : t.second) {
                 allTrigrams[t.first].first++;
                 listFilesStream << char(el >> 8) << char(el & ((1 << 8) - 1));
-                //listFilesStream.flush();
             }
             isDone += t.second.size();
         }
