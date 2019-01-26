@@ -2,6 +2,7 @@
 #include "indexes.h"
 #include <fstream>
 #include <set>
+#include <iostream>
 
 searcher::searcher(std::string inputString) : inputString(inputString), flagStop(false) {}
 
@@ -23,11 +24,11 @@ bool searcher::findInputStringInFile(std::string &inputString, fs::path &p) {
     }
     int prevPref = 0;
     int ind = 0;
-    char buf[SIZE_BUF];
+    unsigned char buf[SIZE_BUF];
     do {
         int sz = 0;
         try {
-            file.read(buf, sizeof(buf));
+            file.read((char *) buf, sizeof(buf));
             sz = (int)file.gcount();
         } catch (...) {
             file.close();
@@ -54,13 +55,13 @@ bool searcher::findInputStringInFile(std::string &inputString, fs::path &p) {
 
 void searcher::doWork() {
     indexes &ind = indexes::instance();
-    std::set<std::tuple<char, char, char>> trigrams;
+    std::set<std::tuple<unsigned char, unsigned char, unsigned char>> trigrams;
     for (size_t i = 0; i < inputString.length() - 2; i++) {
-        trigrams.insert(std::tuple<char, char, char>(inputString[i], inputString[i + 1], inputString[i + 2]));
+        trigrams.insert(std::tuple<unsigned char, unsigned char, unsigned char>(inputString[i], inputString[i + 1], inputString[i + 2]));
     }
     std::vector<size_t> cntTrigrams(ind.mapPaths.size(), 0);
     std::ifstream listFiles(LIST_FILES);
-    char buf[SIZE_BUF];
+    unsigned char buf[SIZE_BUF];
     size_t isDone = 0;
     for (auto &t : trigrams) {
         if (flagStop) {
@@ -71,7 +72,7 @@ void searcher::doWork() {
         int sz = ind.allTrigrams[t].second * 2;
         try {
             listFiles.seekg(pos, std::ios_base::beg);
-            listFiles.read(buf, sz);
+            listFiles.read((char *)buf, sz);
         } catch (...) {
             continue;
         }
@@ -92,7 +93,13 @@ void searcher::doWork() {
         if (cntTrigrams[i] == trigrams.size()) {
             fs::path p = ind.mapPaths[(short)i];
             std::vector<int> pos;
+            if (p == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
+                std::cerr << "searcher\n";
+            }
             if (findInputStringInFile(inputString, p)) {
+                if (p == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
+                    std::cerr << "searcher\n";
+                }
                 send(p, 50 + int((50.0 * i) / ind.mapPaths.size()));
             }
         }

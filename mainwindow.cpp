@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QDesktopServices>
 #include <QThread>
+#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -20,6 +21,9 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::addListFiles(fs::path &p) {
+    if (p == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
+        std::cerr << "main\n";
+    }
     if (p.empty()) {
         return;
     }
@@ -42,6 +46,9 @@ void MainWindow::callbackBuilder(int progressValue) {
 }
 
 void MainWindow::callbackSearcher(fs::path p, int progressValue) {
+    if (p == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
+        std::cerr << "main\n";
+    }
     addListFiles(p);
     bar->setValue(progressValue);
     if (progressValue == 100) {

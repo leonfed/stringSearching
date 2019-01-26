@@ -24,8 +24,8 @@ signals:
 
 private:
     void getListFiles(std::vector<fs::path> &paths, const std::string &directory);
-    void createListFiles(std::map<std::tuple<char, char, char>, std::pair<int, int>> allTrigrams);
-    bool createFileIndex(std::ofstream &listPairsStream, fs::path &p, short num, std::map<std::tuple<char, char, char>, std::pair<int, int>> &allTrigrams, std::map<short, fs::path> &mapPaths);
+    void createListFiles(std::map<std::tuple<unsigned char, unsigned char, unsigned char>, std::pair<int, int>> allTrigrams);
+    bool createFileIndex(std::ofstream &listPairsStream, fs::path &p, short num, std::map<std::tuple<unsigned char, unsigned char, unsigned char>, std::pair<int, int>> &allTrigrams, std::map<short, fs::path> &mapPaths);
 
     std::string directory;
     bool flagStop;

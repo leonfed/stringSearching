@@ -2,49 +2,56 @@
 #include "indexes.h"
 #include <fstream>
 #include <set>
+#include <iostream>
 
 builderIndex::builderIndex(std::string directory) : directory(directory), flagStop(false) {}
 
 void builderIndex::getListFiles(std::vector<fs::path> &paths, const std::string &directory) {
     for(const auto &p: fs::recursive_directory_iterator(directory)) {
+        if (p == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
+            std::cerr << "builder\n";
+        }
         if (!fs::is_directory(p.path()) && !fs::is_symlink(p.path())) {
             paths.push_back(p.path());
         }
     }
 }
 
-bool builderIndex::createFileIndex(std::ofstream &listPairsStream, fs::path &p, short num, std::map<std::tuple<char, char, char>, std::pair<int, int>> &allTrigrams, std::map<short, fs::path> &mapPaths) {
+bool builderIndex::createFileIndex(std::ofstream &listPairsStream, fs::path &p, short num, std::map<std::tuple<unsigned char, unsigned char, unsigned char>, std::pair<int, int>> &allTrigrams, std::map<short, fs::path> &mapPaths) {
     std::ifstream file(p);
     if (!file.is_open()) {
         file.close();
         return false;
     }
-    char buf[SIZE_BUF];
-    std::set<std::tuple<char, char, char>> trigrams;
-    char firstChar = 0, secondChar = 0;
+    unsigned char buf[SIZE_BUF];
+    std::set<std::tuple<unsigned char, unsigned char, unsigned char>> trigrams;
+    unsigned char firstChar = 0, secondChar = 0;
+    bool flagFirstChar = false, flagSecondChar = false;
     do {
         int sz = 0;
         try {
-            file.read(buf, sizeof(buf));
+            file.read((char *)buf, sizeof(buf));
             sz = (int)file.gcount();
         } catch (...) {
             file.close();
             return false;
         }
-        if (firstChar != 0) {
-            trigrams.insert(std::tuple<char, char, char>(firstChar, secondChar, buf[0]));
+        if (flagFirstChar) {
+            trigrams.insert(std::tuple<unsigned char, unsigned char, unsigned char>(firstChar, secondChar, buf[0]));
         }
-        if (secondChar != 0 && sz > 1) {
-            trigrams.insert(std::tuple<char, char, char>(secondChar, buf[0], buf[1]));
+        if (flagSecondChar && sz > 1) {
+            trigrams.insert(std::tuple<unsigned char, unsigned char, unsigned char>(secondChar, buf[0], buf[1]));
         }
-        firstChar = secondChar = 0;
+        flagFirstChar = flagSecondChar = false;
         for (int i = 0; i < sz - 2; i++) {
-            trigrams.insert(std::tuple<char, char, char>(buf[i], buf[i + 1], buf[i + 2]));
+            trigrams.insert(std::tuple<unsigned char, unsigned char, unsigned char>(buf[i], buf[i + 1], buf[i + 2]));
         }
         if (sz > 1) {
+            flagSecondChar = true;
             secondChar = buf[sz - 1];
         }
         if (sz > 2) {
+            flagFirstChar = true;
             firstChar = buf[sz - 2];
         }
         if (trigrams.size() > MAX_COUNT_TRIGRAMS) {
@@ -60,16 +67,16 @@ bool builderIndex::createFileIndex(std::ofstream &listPairsStream, fs::path &p, 
         } else {
             allTrigrams[t].second++;
         }
-        listPairsStream << std::get<0>(t) << std::get<1>(t) << std::get<2>(t) << char(num >> 8) << char(num & ((1 << 8) - 1));
+        listPairsStream << std::get<0>(t) << std::get<1>(t) << std::get<2>(t) << (unsigned char)(num >> 8) << (unsigned char)(num & ((1 << 8) - 1));
     }
     return true;
 }
 
-void builderIndex::createListFiles(std::map<std::tuple<char, char, char>, std::pair<int, int>> allTrigrams) { //allTrigrams is copied, because is changed in this function
+void builderIndex::createListFiles(std::map<std::tuple<unsigned char, unsigned char, unsigned char>, std::pair<int, int>> allTrigrams) { //allTrigrams is copied, because is changed in this function
     fs::remove(LIST_FILES);
     std::ofstream listFilesStream(LIST_FILES);
     std::ifstream listPairsStream(LIST_PAIRS);
-    char buf[SIZE_BUF * 5];
+    unsigned char buf[SIZE_BUF * 5];
     size_t szListFiles = 0, isDone = 0;
     for (auto e : allTrigrams) {
         szListFiles += e.second.second;
@@ -81,10 +88,10 @@ void builderIndex::createListFiles(std::map<std::tuple<char, char, char>, std::p
             listPairsStream.close();
             return;
         }
-        std::map<std::tuple<char, char, char>, std::vector<short>> mapListFiles;
+        std::map<std::tuple<unsigned char, unsigned char, unsigned char>, std::vector<short>> mapListFiles;
         int sz = 0;
         try {
-            listPairsStream.read(buf, sizeof(buf));
+            listPairsStream.read((char *)buf, sizeof(buf));
             sz = (int)listPairsStream.gcount();
         } catch (...) {
             listFilesStream.close();
@@ -92,20 +99,23 @@ void builderIndex::createListFiles(std::map<std::tuple<char, char, char>, std::p
             return;
         }
         for (int i = 0; i < sz - 4; i += 5) {
-            std::tuple<char, char, char> trig = std::tuple<char, char, char>(buf[i], buf[i + 1], buf[i + 2]);
+            std::tuple<unsigned char, unsigned char, unsigned char> trig = std::tuple<unsigned char, unsigned char, unsigned char>(buf[i], buf[i + 1], buf[i + 2]);
             short num = (short)((buf[i + 3] << 8) + buf[i + 4]);
+            if (num == 200) {
+                std::cerr << "builder " << buf[i] << " " << buf[i + 1] << " " << buf[i + 2] << "\n";
+            }
             if (mapListFiles.find(trig) == mapListFiles.end()) {
                 mapListFiles[trig] = std::vector<short>(1, num);
             } else {
                 mapListFiles[trig].push_back(num);
             }
         }
-        listFilesStream << char(0);
+        listFilesStream << (unsigned char)0;
         for (auto &t : mapListFiles) {
             listFilesStream.seekp(allTrigrams[t.first].first * 2, std::ios_base::beg);
             for (auto &el : t.second) {
                 allTrigrams[t.first].first++;
-                listFilesStream << char(el >> 8) << char(el & ((1 << 8) - 1));
+                listFilesStream << (unsigned char)(el >> 8) << (unsigned char)(el & ((1 << 8) - 1));
             }
             isDone += t.second.size();
         }
@@ -128,7 +138,13 @@ void builderIndex::doWork() {
             listPairsStream.close();
             return;
         }
+        if (paths[i] == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
+            std::cerr << "builder\n";
+        }
         if (createFileIndex(listPairsStream, paths[i], num, ind.allTrigrams, ind.mapPaths)) {
+            if (paths[i] == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
+                std::cerr << "builder\n";
+            }
             num++;
         }
         send(int((50.0 * i) / paths.size()));
@@ -148,3 +164,18 @@ void builderIndex::doWork() {
 void builderIndex::toStop() {
     flagStop = true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

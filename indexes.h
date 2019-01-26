@@ -21,7 +21,7 @@ public:
 
     std::string directory;
     fs::file_time_type lastChange;
-    std::map<std::tuple<char, char, char>, std::pair<int, int>> allTrigrams;
+    std::map<std::tuple<unsigned char, unsigned char, unsigned char>, std::pair<int, int>> allTrigrams;
     std::map<short, fs::path> mapPaths;
 
     void clear() {
