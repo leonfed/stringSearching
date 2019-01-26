@@ -2,7 +2,6 @@
 #include "indexes.h"
 #include <fstream>
 #include <set>
-#include <iostream>
 
 searcher::searcher(std::string inputString) : inputString(inputString), flagStop(false) {}
 
@@ -93,13 +92,7 @@ void searcher::doWork() {
         if (cntTrigrams[i] == trigrams.size()) {
             fs::path p = ind.mapPaths[(short)i];
             std::vector<int> pos;
-            if (p == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
-                std::cerr << "searcher\n";
-            }
             if (findInputStringInFile(inputString, p)) {
-                if (p == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
-                    std::cerr << "searcher\n";
-                }
                 send(p, 50 + int((50.0 * i) / ind.mapPaths.size()));
             }
         }

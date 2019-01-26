@@ -2,15 +2,11 @@
 #include "indexes.h"
 #include <fstream>
 #include <set>
-#include <iostream>
 
 builderIndex::builderIndex(std::string directory) : directory(directory), flagStop(false) {}
 
 void builderIndex::getListFiles(std::vector<fs::path> &paths, const std::string &directory) {
     for(const auto &p: fs::recursive_directory_iterator(directory)) {
-        if (p == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
-            std::cerr << "builder\n";
-        }
         if (!fs::is_directory(p.path()) && !fs::is_symlink(p.path())) {
             paths.push_back(p.path());
         }
@@ -101,9 +97,6 @@ void builderIndex::createListFiles(std::map<std::tuple<unsigned char, unsigned c
         for (int i = 0; i < sz - 4; i += 5) {
             std::tuple<unsigned char, unsigned char, unsigned char> trig = std::tuple<unsigned char, unsigned char, unsigned char>(buf[i], buf[i + 1], buf[i + 2]);
             short num = (short)((buf[i + 3] << 8) + buf[i + 4]);
-            if (num == 200) {
-                std::cerr << "builder " << buf[i] << " " << buf[i + 1] << " " << buf[i + 2] << "\n";
-            }
             if (mapListFiles.find(trig) == mapListFiles.end()) {
                 mapListFiles[trig] = std::vector<short>(1, num);
             } else {
@@ -138,13 +131,7 @@ void builderIndex::doWork() {
             listPairsStream.close();
             return;
         }
-        if (paths[i] == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
-            std::cerr << "builder\n";
-        }
         if (createFileIndex(listPairsStream, paths[i], num, ind.allTrigrams, ind.mapPaths)) {
-            if (paths[i] == "/home/fedleonid/Рабочий стол/myFiles/file1 (8-я копия)") {
-                std::cerr << "builder\n";
-            }
             num++;
         }
         send(int((50.0 * i) / paths.size()));
